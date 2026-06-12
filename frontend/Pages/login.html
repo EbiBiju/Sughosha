@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login - SughOsha</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* --- CORE SETUP (Strictly Black, White, Cyan, Dark Blue) --- */
+        :root {
+            --accent-cyan: #48b0d6;
+            --accent-royal-blue: #1d4ed8;
+            --tech-dark: #0a0a0a;
+            --tech-darker: #000000;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--tech-darker);
+            color: #ffffff;
+            margin: 0;
+            /* CRITICAL: Locks the screen height to exactly the viewport and prevents scrolling */
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- 3D CANVAS BACKGROUND --- */
+        #nexus-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        /* Vignette to ensure the card stands out against the 3D background */
+        .bg-vignette {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: radial-gradient(circle at center, transparent 25%, #000000 100%);
+            pointer-events: none;
+        }
+
+        /* --- GLOSSY BLACK GLASS CARD --- */
+        .glass-card-black {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.7) 0%, rgba(2, 2, 2, 0.95) 100%);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 1), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            border-radius: 2rem;
+            position: relative;
+            z-index: 10;
+            /* Entrance Animation State */
+            opacity: 0;
+            transform: translateY(40px) scale(0.9);
+        }
+
+        /* --- MODERN INPUTS --- */
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.4);
+            transition: color 0.3s ease;
+            pointer-events: none;
+        }
+
+        .glass-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 0.8rem 1rem 0.8rem 2.8rem;
+            color: #fff;
+            font-weight: 300;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-input:focus {
+            outline: none;
+            background: rgba(0, 0, 0, 0.8);
+            border-color: var(--accent-cyan);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(72, 176, 214, 0.2);
+        }
+
+        .glass-input:focus+.input-icon,
+        .glass-input:not(:placeholder-shown)+.input-icon {
+            color: var(--accent-cyan);
+        }
+
+        .glass-input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            background-color: rgba(0, 0, 0, 0.5);
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.15em;
+            height: 1.15em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+
+        .custom-checkbox:checked {
+            background-color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .custom-checkbox:checked::before {
+            transform: scale(1);
+        }
+
+        /* --- CUSTOM CURSOR --- */
+        .cursor-blob {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 99999;
+            mix-blend-mode: screen;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background 0.3s;
+            will-change: left, top;
+        }
+
+        .cursor-blob.hover-active {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(72, 176, 214, 0.7) 0%, transparent 70%);
+        }
+    </style>
+</head>
+
+<body class="selection:bg-[#48b0d6] selection:text-white">
+
+    <div id="nexus-canvas"></div>
+    <div class="bg-vignette"></div>
+
+    <div class="cursor-blob" id="cursor-blob"></div>
+
+    <main id="login-container" class="glass-card-black w-full max-w-[400px] p-8 mx-4 flex flex-col relative z-20">
+
+        <div class="flex items-center justify-center gap-2 mb-6">
+            <div class="relative flex h-2 w-2">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#48b0d6] opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-[#48b0d6]"></span>
+            </div>
+            <span class="text-gray-300 text-[10px] font-bold tracking-[0.2em] uppercase">Secure Gateway</span>
+        </div>
+
+        <div class="flex justify-center mb-6">
+            <a href="index.html" class="flex items-center gap-2 group">
+                <img src="log.png" onerror="this.style.display='none'" alt="SughOsha Logo"
+                    class="h-10 w-auto object-contain transition-transform duration-500 group-hover:scale-110" />
+                <span class="text-3xl font-bold text-white tracking-tight">Sugh<span
+                        class="text-[#48b0d6]">Osha</span></span>
+            </a>
+        </div>
+
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-extrabold tracking-tight mb-1 text-white">Welcome Back</h2>
+            <p class="text-gray-400 text-sm font-light">Enter your credentials to access your workspace.</p>
+        </div>
+
+        <form id="loginForm" class="space-y-4">
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email address" required class="glass-input">
+                <i data-lucide="mail" class="input-icon w-4 h-4"></i>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password" required class="glass-input pr-12">
+                <i data-lucide="lock" class="input-icon w-4 h-4"></i>
+
+                <button type="button" onclick="togglePwd()"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition focus:outline-none">
+                    <i data-lucide="eye" id="eye-open" class="w-4 h-4"></i>
+                    <i data-lucide="eye-off" id="eye-closed" class="w-4 h-4 hidden"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center justify-between text-sm mt-2 mb-4">
+                <label
+                    class="flex items-center gap-2 text-gray-300 cursor-pointer hover:text-white transition font-light text-[13px]">
+                    <input id="remember-me" type="checkbox" class="custom-checkbox"> Remember me
+                </label>
+                <a href="#" class="text-[#48b0d6] hover:text-white font-medium transition text-[13px]">Forgot
+                    password?</a>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-[#48b0d6] text-white font-bold tracking-wide py-3.5 rounded-xl transition-all hover:bg-white hover:text-black hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] active:scale-[0.98] flex items-center justify-center gap-2 mt-4">
+                Sign In <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </form>
+
+        <div class="relative flex py-6 items-center">
+            <div class="flex-grow border-t border-white/10"></div>
+            <span class="mx-4 text-gray-500 text-[10px] uppercase tracking-widest font-semibold">Or connect</span>
+            <div class="flex-grow border-t border-white/10"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+            <!-- Google Login -->
+            <button id="btn-google" onclick="socialLogin('google')"
+                title="Sign in with Google"
+                class="social-btn bg-white/5 hover:bg-white/10 transition flex items-center justify-center py-3 rounded-xl border border-white/10 hover:border-white/30 group relative overflow-hidden">
+                <span class="btn-content flex items-center justify-center gap-1.5">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="h-4 w-4" alt="Google">
+                </span>
+                <span class="btn-spinner hidden absolute inset-0 flex items-center justify-center">
+                    <svg class="animate-spin h-4 w-4 text-[#48b0d6]" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                </span>
+            </button>
+
+            <!-- Facebook Login -->
+            <button id="btn-facebook" onclick="socialLogin('facebook')"
+                title="Sign in with Facebook"
+                class="social-btn bg-white/5 hover:bg-white/10 transition flex items-center justify-center py-3 rounded-xl border border-white/10 hover:border-white/30 relative overflow-hidden">
+                <span class="btn-content flex items-center justify-center">
+                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="h-4 w-4" alt="Facebook">
+                </span>
+                <span class="btn-spinner hidden absolute inset-0 flex items-center justify-center">
+                    <svg class="animate-spin h-4 w-4 text-[#48b0d6]" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                </span>
+            </button>
+
+            <!-- Apple Login (requires HTTPS) -->
+            <button id="btn-apple" onclick="socialLogin('apple')"
+                title="Sign in with Apple (requires HTTPS)"
+                class="social-btn bg-white/5 hover:bg-white/10 transition flex items-center justify-center py-3 rounded-xl border border-white/10 hover:border-white/30 relative overflow-hidden">
+                <span class="btn-content flex items-center justify-center">
+                    <img src="https://www.svgrepo.com/show/511330/apple-173.svg" class="h-4 w-4" style="filter:invert(1)" alt="Apple">
+                </span>
+                <span class="btn-spinner hidden absolute inset-0 flex items-center justify-center">
+                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                </span>
+            </button>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="auth-toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-2xl text-sm font-semibold shadow-2xl flex items-center gap-3 opacity-0 pointer-events-none transition-all duration-500 scale-90"
+            style="backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1);">
+            <span id="toast-icon"></span>
+            <span id="toast-msg"></span>
+        </div>
+
+        <p class="text-center text-gray-400 text-sm font-light mt-8 mb-2">
+            Don't have an account? <a href="signup.html"
+                class="text-white hover:text-[#48b0d6] font-semibold transition border-b border-transparent hover:border-[#48b0d6]">Create
+                one</a>
+        </p>
+
+    </main>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // ── AUTH SERVER CONFIG ────────────────────────────────────────────────
+        const AUTH_SERVER = 'http://localhost:8082';
+
+        // ── TOAST NOTIFICATION ────────────────────────────────────────────────
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('auth-toast');
+            const icon  = document.getElementById('toast-icon');
+            const msgEl = document.getElementById('toast-msg');
+
+            const styles = {
+                success: { bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.4)', color: '#10b981', icon: '✅' },
+                error:   { bg: 'rgba(239,68,68,0.15)',  border: 'rgba(239,68,68,0.4)',  color: '#ef4444', icon: '⚠️'  },
+                info:    { bg: 'rgba(72,176,214,0.15)', border: 'rgba(72,176,214,0.4)', color: '#48b0d6', icon: 'ℹ️'  },
+            };
+            const s = styles[type] || styles.info;
+
+            toast.style.background = s.bg;
+            toast.style.borderColor = s.border;
+            toast.style.color = s.color;
+            icon.textContent  = s.icon;
+            msgEl.textContent = msg;
+
+            // Animate in
+            toast.classList.remove('opacity-0', 'scale-90', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'scale-100');
+
+            // Animate out after 4s
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'scale-100');
+                toast.classList.add('opacity-0', 'scale-90', 'pointer-events-none');
+            }, 4000);
+        }
+
+        // ── SOCIAL LOGIN ──────────────────────────────────────────────────────
+        const ERROR_MESSAGES = {
+            'google_not_configured':  'Google login is not yet configured. Add your Client ID in .env',
+            'google_failed':          'Google login failed. Please try again.',
+            'facebook_not_configured':'Facebook login is not yet configured. Add your App ID in .env',
+            'facebook_failed':        'Facebook login failed. Please try again.',
+            'apple_requires_https':   'Apple Sign In requires an HTTPS domain. Use Google or Facebook for now.',
+        };
+
+        function socialLogin(provider) {
+            const btn = document.getElementById(`btn-${provider}`);
+            if (!btn) return;
+
+            // Show spinner
+            btn.querySelector('.btn-content').classList.add('hidden');
+            btn.querySelector('.btn-spinner').classList.remove('hidden');
+            btn.disabled = true;
+
+            // Redirect to auth server
+            window.location.href = `${AUTH_SERVER}/auth/${provider}`;
+        }
+
+        // ── CHECK RETURN FROM OAUTH ───────────────────────────────────────────
+        (function handleOAuthReturn() {
+            const params = new URLSearchParams(window.location.search);
+            const error    = params.get('error');
+            const logout   = params.get('logout');
+
+            if (error) {
+                const msg = ERROR_MESSAGES[error] || 'Authentication failed. Please try again.';
+                // Wait for page to render before showing toast
+                setTimeout(() => showToast(msg, 'error'), 600);
+                // Clean URL
+                history.replaceState({}, '', 'login.html');
+            }
+            if (logout) {
+                setTimeout(() => showToast('You have been signed out.', 'info'), 600);
+                history.replaceState({}, '', 'login.html');
+            }
+        })();
+
+        // ── LOGIN FORM → BACKEND ──────────────────────────────────────────────
+        const API = 'http://localhost:5000/api/auth';
+
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email    = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+                // ── Set loading state ─────────────────────────────────────────
+                const originalHTML = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    <span>Signing in...</span>`;
+
+                try {
+                    const res  = await fetch(`${API}/login`, {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body:    JSON.stringify({ email, password })
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        // ── Show error toast ──────────────────────────────────
+                        showToast(data.message || 'Login failed. Please try again.', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHTML;
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    // ── Success: store token & redirect ───────────────────────
+                    localStorage.setItem('shughosha_token', data.token);
+                    localStorage.setItem('shughosha_user',  JSON.stringify(data.user));
+                    // Pass welcome state via localStorage (not query params — avoids server 500)
+                    localStorage.setItem('shughosha_welcome', JSON.stringify({ name: data.user.name, provider: 'email' }));
+
+                    submitBtn.innerHTML = `✅ <span>Welcome back!</span>`;
+                    submitBtn.classList.replace('bg-[#48b0d6]', 'bg-green-500');
+
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 800);
+
+                } catch (err) {
+                    // ── Network error (backend not running) ───────────────────
+                    showToast('Cannot reach the server. Is the backend running? (node server.js)', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        // --- PASSWORD VISIBILITY TOGGLE ---
+        function togglePwd() {
+            const p = document.getElementById('password');
+            const o = document.getElementById('eye-open');
+            const c = document.getElementById('eye-closed');
+            if (p.type === 'password') {
+                p.type = 'text'; o.classList.add('hidden'); c.classList.remove('hidden');
+            } else {
+                p.type = 'password'; o.classList.remove('hidden'); c.classList.add('hidden');
+            }
+        }
+
+        // --- CUSTOM CURSOR ---
+        const cursorBlob = document.getElementById('cursor-blob');
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2, blobX = mouseX, blobY = mouseY;
+        document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+        function animateBlob() {
+            blobX += (mouseX - blobX) * 0.15; blobY += (mouseY - blobY) * 0.15;
+            cursorBlob.style.left = `${blobX}px`; cursorBlob.style.top = `${blobY}px`;
+            requestAnimationFrame(animateBlob);
+        }
+        animateBlob();
+
+        document.querySelectorAll('a, button, input, .custom-checkbox').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorBlob.classList.add('hover-active'));
+            el.addEventListener('mouseleave', () => cursorBlob.classList.remove('hover-active'));
+        });
+
+        // =====================================================================
+        // THREE.JS: THE QUANTUM DATA NEXUS
+        // A massive, sentient, breathing sphere of data particles
+        // =====================================================================
+        const container = document.getElementById('nexus-canvas');
+        const scene = new THREE.Scene();
+        // Deep fog to hide the edges and make it feel infinite
+        scene.fog = new THREE.FogExp2(0x000000, 0.025);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 40;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const nexusGroup = new THREE.Group();
+        scene.add(nexusGroup);
+
+        // Particle configuration
+        const particleCount = 12000; // High density for premium feel
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const basePositions = new Float32Array(particleCount * 3); // Stored for calculating ripples
+        const colors = new Float32Array(particleCount * 3);
+
+        const colorCyan = new THREE.Color(0x48b0d6);
+        const colorRoyal = new THREE.Color(0x1d4ed8);
+        const colorWhite = new THREE.Color(0xffffff);
+
+        const sphereRadius = 25;
+
+        for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            // Generate points on a sphere
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+
+            // Add slight randomness to radius to make it feel like a thick shell rather than a thin surface
+            const r = sphereRadius + (Math.random() - 0.5) * 2;
+
+            const x = r * Math.sin(phi) * Math.cos(theta);
+            const y = r * Math.sin(phi) * Math.sin(theta);
+            const z = r * Math.cos(phi);
+
+            positions[i3] = x; positions[i3 + 1] = y; positions[i3 + 2] = z;
+            basePositions[i3] = x; basePositions[i3 + 1] = y; basePositions[i3 + 2] = z;
+
+            // Gradient coloring based on Y position to give it depth
+            const mixedColor = new THREE.Color();
+            const mixRatio = (y + sphereRadius) / (sphereRadius * 2); // 0 to 1 based on height
+
+            if (Math.random() > 0.95) {
+                mixedColor.copy(colorWhite); // 5% bright white stars
+            } else {
+                mixedColor.lerpColors(colorRoyal, colorCyan, mixRatio);
+            }
+
+            colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.15,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            opacity: 0.8,
+            depthWrite: false
+        });
+
+        const nexusSphere = new THREE.Points(geometry, material);
+        nexusGroup.add(nexusSphere);
+
+        // Add a soft glowing core inside the sphere
+        const coreGeo = new THREE.SphereGeometry(10, 32, 32);
+        const coreMat = new THREE.MeshBasicMaterial({
+            color: 0x1d4ed8,
+            transparent: true,
+            opacity: 0.15,
+            blending: THREE.AdditiveBlending
+        });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        nexusGroup.add(core);
+
+        // --- GSAP CINEMATIC ENTRANCE ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const tl = gsap.timeline();
+
+            // 1. The Nexus scales down and fades in from the void
+            tl.fromTo(nexusGroup.scale,
+                { x: 3, y: 3, z: 3 },
+                { x: 1, y: 1, z: 1, duration: 2.5, ease: "power3.out" }
+            );
+
+            tl.fromTo(material,
+                { opacity: 0 },
+                { opacity: 0.8, duration: 2, ease: "power2.out" },
+                "<" // Start at the same time as scale
+            );
+
+            // 2. The Login Card floats up into place
+            const loginCard = document.getElementById('login-container');
+            tl.to(loginCard, {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 1.2,
+                ease: "power3.out"
+            }, "-=1.5"); // Overlap the animations
+        });
+
+        // --- MAIN 3D RENDER LOOP ---
+        let time = 0;
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            time += 0.015;
+
+            // Slowly rotate the entire nexus
+            nexusGroup.rotation.y = time * 0.1;
+            nexusGroup.rotation.x = Math.sin(time * 0.05) * 0.2;
+
+            // Make the sphere "breathe" and ripple
+            const posAttribute = geometry.attributes.position;
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+
+                const bx = basePositions[i3];
+                const by = basePositions[i3 + 1];
+                const bz = basePositions[i3 + 2];
+
+                // Calculate distance from center to create a wave effect
+                const dist = Math.sqrt(bx * bx + by * by + bz * bz);
+
+                // Ripple math: sine wave moving through the sphere based on Y position and time
+                const wave = Math.sin(by * 0.2 + time * 2) * 1.5;
+
+                // Apply wave outward along the normal vector
+                const normalizeFactor = (dist + wave) / dist;
+
+                posAttribute.array[i3] = bx * normalizeFactor;
+                posAttribute.array[i3 + 1] = by * normalizeFactor;
+                posAttribute.array[i3 + 2] = bz * normalizeFactor;
+            }
+            posAttribute.needsUpdate = true;
+
+            // Pulse the inner core
+            const coreScale = 1 + Math.sin(time * 2) * 0.1;
+            core.scale.setScalar(coreScale);
+
+            // Smooth mouse interaction (Parallax)
+            const targetX = (mouseX / window.innerWidth) * 2 - 1;
+            const targetY = -(mouseY / window.innerHeight) * 2 + 1;
+
+            // Move camera slightly opposite to mouse for depth
+            camera.position.x += (targetX * 5 - camera.position.x) * 0.05;
+            camera.position.y += (targetY * 5 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+        animate3D();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+
+</html>

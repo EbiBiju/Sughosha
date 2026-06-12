@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - SughOsha Story</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="authGuard.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        /* --- Core Theme Colors (Strictly Black, White, Cyan, Dark Blue) --- */
+        :root {
+            --accent-cyan: #48b0d6;
+            --accent-dark-blue: #0f172a;
+            /* Deep, rich dark blue */
+            --accent-royal-blue: #1d4ed8;
+            /* Vibrant dark blue for glows */
+            --tech-dark: #050505;
+            --tech-darker: #000000;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+            background-color: var(--tech-darker);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- Background Pattern & Twinkle --- */
+        .bg-tech-pattern {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.04;
+            background-image: linear-gradient(rgba(72, 176, 214, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(72, 176, 214, 0.3) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        .blink-dot {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background-color: var(--accent-cyan);
+            opacity: 0;
+            box-shadow: 0 0 10px 2px rgba(72, 176, 214, 0.6);
+            animation: twinkle-in-out 6s infinite ease-in-out;
+        }
+
+        @keyframes twinkle-in-out {
+
+            0%,
+            100% {
+                opacity: 0.05;
+                transform: scale(0.5);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.3);
+            }
+        }
+
+        /* --- Glass Styles --- */
+        .glass {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card-dark-style {
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.5) 0%, rgba(15, 23, 42, 0.3) 100%);
+            /* Dark blue tint */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(72, 176, 214, 0.15);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+            transition: all 0.4s ease;
+        }
+
+        .glass-card-dark-style:hover {
+            border-color: rgba(72, 176, 214, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(72, 176, 214, 0.1);
+            background: linear-gradient(145deg, rgba(10, 10, 10, 0.6) 0%, rgba(30, 30, 30, 0.4) 100%);
+            /* Dark blue hover tint */
+        }
+
+        /* --- Cinematic Scroll Animations --- */
+        .scroll-hidden-cinema {
+            opacity: 0;
+            filter: blur(15px);
+            transform: translateY(30px) scale(0.98);
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .scroll-visible-cinema {
+            opacity: 1;
+            filter: blur(0px);
+            transform: translateY(0) scale(1);
+        }
+
+        /* =========================================
+           --- HERO SECTION STYLES ---
+        ========================================= */
+        #aurora-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .aurora-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: auroraMove 20s infinite alternate ease-in-out;
+        }
+
+        .ab-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: var(--accent-cyan);
+            animation-duration: 25s;
+        }
+
+        .ab-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: var(--accent-royal-blue);
+            animation-duration: 30s;
+            animation-direction: alternate-reverse;
+        }
+
+        /* Changed to Royal Blue */
+        @keyframes auroraMove {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(10%, 10%) scale(1.1);
+            }
+        }
+
+        /* --- GLOBAL FIXED 3D CANVAS --- */
+        #prism-stage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            overflow: hidden;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        .hero-text-content-wrapper {
+            position: relative;
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+            filter: blur(8px);
+            transition: all 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .hero-text-revealed {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0px);
+        }
+
+        /* =========================================
+           --- GLOBAL GEOMETRIC DATA CONDUIT ---
+        ========================================= */
+        #global-tree-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2600px;
+            z-index: 2;
+            pointer-events: none;
+            perspective: 2500px;
+            overflow: visible;
+        }
+
+        .tree-path-glow {
+            filter: drop-shadow(0 0 8px rgba(72, 176, 214, 0.7)) drop-shadow(0 0 15px rgba(29, 78, 216, 0.5));
+            /* Updated to Dark Blue */
+        }
+
+        .animated-tree-structure {
+            transform-style: preserve-3d;
+            transform-origin: center 800px;
+            animation:
+                treePulse 6s ease-in-out infinite alternate,
+                treeRevolve 50s linear infinite;
+        }
+
+        @keyframes treePulse {
+            0% {
+                opacity: 0.5;
+                filter: brightness(0.8);
+            }
+
+            100% {
+                opacity: 0.9;
+                filter: brightness(1.3);
+            }
+        }
+
+        @keyframes treeRevolve {
+            from {
+                transform: rotateY(0deg);
+            }
+
+            to {
+                transform: rotateY(360deg);
+            }
+        }
+
+        /* Floating Octagons */
+        #mission-octagons-container {
+            position: absolute;
+            top: 600px;
+            left: 0;
+            width: 100%;
+            height: 500px;
+            pointer-events: none;
+            z-index: 3;
+            overflow: hidden;
+        }
+
+        .mission-octagon {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(72, 176, 214, 0.01));
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(72, 176, 214, 0.15);
+            box-shadow: 0 0 15px rgba(72, 176, 214, 0.1), inset 0 0 20px rgba(29, 78, 216, 0.15);
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+            /* Shadow updated to dark blue */
+        }
+
+        .mo-1 {
+            width: 180px;
+            height: 180px;
+            top: 0%;
+            left: 10%;
+            animation: rotateOctagon 35s linear infinite;
+            opacity: 0.5;
+        }
+
+        .mo-2 {
+            width: 120px;
+            height: 120px;
+            top: 25%;
+            right: 15%;
+            animation: rotateOctagon 25s linear infinite reverse;
+            opacity: 0.3;
+        }
+
+        @keyframes rotateOctagon {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Utility */
+        .text-accent {
+            color: var(--accent-cyan);
+        }
+
+        .text-gradient-cyan {
+            background: linear-gradient(to right, var(--accent-cyan), #ffffff);
+            /* Changed to pure white/cyan */
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-on-tree {
+            position: relative;
+            z-index: 10;
+        }
+
+        #hero-stage .hero-text-content-wrapper {
+            z-index: 20;
+        }
+
+        /* Cursor Blob adjustments for strict color theme */
+        .cursor-blob {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(72, 176, 214, 0.8) 0%, rgba(72, 176, 214, 0) 70%);
+            pointer-events: none;
+            z-index: 99999;
+            mix-blend-mode: screen;
+            transition: width 0.3s ease-out, height 0.3s ease-out, background 0.3s ease-out;
+            transform: translate(-50%, -50%);
+            will-change: left, top, width, height;
+        }
+
+        .cursor-blob.hover-active {
+            width: 100px;
+            height: 100px;
+            /* Updated hover to bright white/cyan burst instead of orange/purple */
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, rgba(72, 176, 214, 0) 70%);
+        }
+    </style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body class="bg-black text-white min-h-screen selection:bg-[#48b0d6] selection:text-white">
+
+    <div id="background-fx" class="bg-tech-pattern"></div>
+
+    <div id="prism-stage"></div>
+
+    <div id="global-tree-container">
+        <svg viewBox="0 0 1440 2600" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"
+            xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="tree-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="var(--accent-cyan)" stop-opacity="0.6" />
+                    <stop offset="50%" stop-color="var(--accent-royal-blue)" stop-opacity="0.8" />
+                    <stop offset="100%" stop-color="var(--accent-cyan)" stop-opacity="1.0" />
+                </linearGradient>
+            </defs>
+
+            <g class="animated-tree-structure tree-path-glow" stroke="url(#tree-grad)" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M720,150 L300,400 L720,800" stroke-width="4" opacity="0.7" />
+                <path d="M720,150 L1140,400 L720,800" stroke-width="4" opacity="0.7" />
+                <path d="M720,800 L720,1000 L680,1100 L760,1200 L720,1300" stroke-width="5" />
+                <path d="M720,800 L720,1000 L760,1100 L680,1200 L720,1300" stroke-width="5" />
+                <path d="M720,1300 L350,1450 L300,1600 L500,1750" stroke-width="4" opacity="0.6" />
+                <path d="M720,1300 L1090,1450 L1140,1600 L940,1750" stroke-width="4" opacity="0.6" />
+                <path d="M720,1300 L720,1600 L720,1800" stroke-width="7" />
+                <path d="M500,1750 L600,1850 L700,1900 L720,2000" stroke-width="6" />
+                <path d="M940,1750 L840,1850 L740,1900 L720,2000" stroke-width="6" />
+                <path d="M720,1800 L720,2200" stroke-width="9" />
+
+                <circle cx="720" cy="150" r="12" fill="var(--accent-cyan)" />
+                <circle cx="720" cy="800" r="10" fill="var(--accent-royal-blue)" />
+                <circle cx="300" cy="1600" r="8" fill="var(--accent-cyan)" />
+                <circle cx="1140" cy="1600" r="8" fill="var(--accent-cyan)" />
+                <circle cx="720" cy="2000" r="12" fill="var(--accent-royal-blue)" />
+            </g>
+        </svg>
+    </div>
+
+    <nav class="glass fixed w-full z-50 top-0 left-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="index.html" class="flex items-center gap-0">
+                        <img src="log.png" onerror="this.style.display='none'" alt="ShuGhosha Logo"
+                            class="h-12 w-auto object-contain mr-2" />
+                        <span class="text-2xl font-bold text-white tracking-tight">
+                            Sugh<span class="text-[#48b0d6]">Osha</span>
+                        </span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-10">
+                    <div class="flex space-x-8">
+                        <a href="index.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">Home</a>
+                        <a href="services.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">Services</a>
+                        <a href="careers.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">Careers</a>
+                        <a href="about.html"
+                            class="text-white font-medium transition text-sm tracking-wide border-b-2 border-[#48b0d6]">About
+                            Us</a>
+                    </div>
+                    <div class="flex items-center space-x-6 pl-2 border-l border-white/10">
+                        <a href="login.html" class="text-white hover:text-gray-300 font-bold text-lg">Log in</a>
+                        <a href="contactus.html"
+                            class="bg-[#48b0d6] text-white hover:bg-[#3a9cbd] px-6 py-2.5 rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(72,176,214,0.4)]">
+                            Get Started
+                        </a>
+                    </div>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMenu()" class="text-gray-300 hover:text-white focus:outline-none">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden glass border-t border-white/10 absolute w-full left-0">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="index.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">Home</a>
+                <a href="services.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">Services</a>
+                <a href="careers.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">Careers</a>
+                <a href="about.html" class="block px-3 py-2 text-white bg-white/10 rounded-md">About Us</a>
+                <div class="pt-4 mt-2 border-t border-white/10 flex flex-col gap-3">
+                    <a href="login.html" class="block text-center text-gray-300 hover:text-white font-bold text-lg">Log
+                        in</a>
+                    <a href="contactus.html"
+                        class="block text-center bg-[#48b0d6] text-white py-2 rounded-full font-medium">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section id="hero-stage"
+        class="pt-40 pb-20 overflow-hidden min-h-[85vh] flex items-center justify-center relative z-10">
+        <div id="aurora-bg">
+            <div class="aurora-blob ab-1"></div>
+            <div class="aurora-blob ab-2"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center hero-text-content-wrapper">
+            <span
+                class="inline-block py-1 px-3 rounded-full bg-[#48b0d6]/10 border border-[#48b0d6]/20 text-[#48b0d6] text-sm font-semibold uppercase tracking-wider mb-6 relative z-30">The
+                SughOsha Story</span>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-8 leading-tight tracking-tight relative z-30">
+                Crafting Digital Futures through <br class="hidden md:block"><span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-[#48b0d6] via-cyan-200 to-white">Creative
+                    Innovation.</span></h1>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto font-light leading-relaxed mb-10 relative z-30">We are a
+                creative service-based company providing cutting-edge digital solutions for businesses and individuals
+                ready to evolve.</p>
+        </div>
+    </section>
+
+    <div class="relative width-full">
+
+        <div id="mission-octagons-container">
+            <div class="mission-octagon mo-1"></div>
+            <div class="mission-octagon mo-2"></div>
+        </div>
+
+        <section class="py-20 section-on-tree">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div
+                    class="glass-card-dark-style rounded-[3rem] p-10 md:p-16 text-center relative overflow-hidden scroll-hidden-cinema delay-100 border-2 border-[#48b0d6]/30">
+                    <div
+                        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 bg-[#48b0d6] rounded-full blur-[100px] opacity-10 pointer-events-none">
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <div
+                            class="w-16 h-16 rounded-full bg-[#48b0d6]/20 flex items-center justify-center text-[#48b0d6] mb-6">
+                            <i data-lucide="target" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 tracking-wide">Our Mission</h2>
+                        <p
+                            class="text-2xl md:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-[#48b0d6] font-semibold leading-relaxed max-w-3xl mx-auto">
+                            "Helping businesses grow through digital creativity and smart solutions."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-24 section-on-tree">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16 scroll-hidden-cinema delay-200">
+                    <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">What Makes Us <span
+                            class="text-accent">Unique</span></h2>
+                    <p class="text-gray-400 text-lg">Driven by passion, defined by quality.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
+                    <div
+                        class="glass-card-dark-style p-8 rounded-[2rem] flex items-start gap-6 scroll-hidden-cinema delay-100 group">
+                        <div
+                            class="flex-shrink-0 w-14 h-14 rounded-2xl bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="sparkles" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-accent transition-colors">
+                                Young & Creative Team</h3>
+                            <p class="text-gray-400 leading-relaxed">We bring fresh perspectives, boundless energy, and
+                                a pulse on emerging trends to every project we touch.</p>
+                        </div>
+                    </div>
+                    <div
+                        class="glass-card-dark-style p-8 rounded-[2rem] flex items-start gap-6 scroll-hidden-cinema delay-200 group">
+                        <div
+                            class="flex-shrink-0 w-14 h-14 rounded-2xl bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="award" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-accent transition-colors">
+                                Quality-Driven Output</h3>
+                            <p class="text-gray-400 leading-relaxed">Excellence isn't optional. We obsess over details
+                                to ensure the final deliverable exceeds expectations.</p>
+                        </div>
+                    </div>
+                    <div
+                        class="glass-card-dark-style p-8 rounded-[2rem] flex items-start gap-6 scroll-hidden-cinema delay-300 group">
+                        <div
+                            class="flex-shrink-0 w-14 h-14 rounded-2xl bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="coins" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-accent transition-colors">
+                                Affordable Pricing</h3>
+                            <p class="text-gray-400 leading-relaxed">Premium digital solutions shouldn't break the bank.
+                                We offer high-value services tailored to your budget.</p>
+                        </div>
+                    </div>
+                    <div
+                        class="glass-card-dark-style p-8 rounded-[2rem] flex items-start gap-6 scroll-hidden-cinema delay-400 group">
+                        <div
+                            class="flex-shrink-0 w-14 h-14 rounded-2xl bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="rocket" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-accent transition-colors">
+                                Modern Approach</h3>
+                            <p class="text-gray-400 leading-relaxed">From linguistic training to digital strategy, we
+                                leverage the latest technology and methodologies.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-32 px-4 sm:px-6 lg:px-8 section-on-tree">
+            <div
+                class="max-w-5xl mx-auto glass-card-dark-style rounded-[3rem] p-14 md:p-20 text-center relative overflow-hidden scroll-hidden-cinema border-[#48b0d6]/20">
+                <div
+                    class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-t from-[#1d4ed8]/30 to-transparent blur-[80px] pointer-events-none">
+                </div>
+                <h2
+                    class="text-4xl md:text-6xl font-extrabold text-white mb-8 leading-tight tracking-tight relative z-10">
+                    Ready to <span class="text-gradient-cyan">Elevate Your Business?</span></h2>
+                <p class="text-xl text-gray-300 mb-12 max-w-3xl mx-auto font-light leading-relaxed relative z-10">Let's
+                    collaborate to bring your vision to life with creativity and smart solutions.</p>
+                <div class="relative z-10"><a href="contactus.html"
+                        class="inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-[#48b0d6] rounded-full hover:bg-[#3a9cbd] transition-all duration-300 hover:scale-105 shadow-[0_0_30px_rgba(72,176,214,0.4)]">Let's
+                        Talk <i data-lucide="arrow-right" class="w-6 h-6 ml-2"></i></a></div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer class="border-t border-white/10 bg-[#0a0a0a] pt-20 pb-8 relative z-20 font-sans">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 mb-16">
+                <div class="lg:col-span-4 lg:pr-8">
+                    <a href="index.html" class="flex items-center gap-3 mb-6">
+                        <img src="log.png" alt="SughOsha Logo" class="h-8 w-auto" onerror="this.style.display='none'" />
+                        <span class="text-2xl font-bold text-white tracking-tight">Sugh<span
+                                class="text-[#48b0d6]">Osha</span></span>
+                    </a>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-8">Providing world-class corporate training,
+                        digital strategy, and creative media production services for modern enterprises ready to evolve
+                        and lead their industries.</p>
+                    <div class="flex items-center gap-4">
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"><i
+                                data-lucide="twitter" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"><i
+                                data-lucide="instagram" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"><i
+                                data-lucide="linkedin" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"><i
+                                data-lucide="facebook" class="w-4 h-4"></i></a>
+                    </div>
+                </div>
+                <div class="lg:col-span-2">
+                    <h3 class="text-white font-bold mb-6 text-sm tracking-wide">Company</h3>
+                    <ul class="space-y-4">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white text-sm transition">Home</a></li>
+                        <li><a href="services.html"
+                                class="text-gray-400 hover:text-white text-sm transition">Services</a></li>
+                        <li><a href="careers.html" class="text-gray-400 hover:text-white text-sm transition">Careers</a>
+                        </li>
+                        <li><a href="about.html" class="text-gray-400 hover:text-white text-sm transition">About Us</a>
+                        </li>
+                        <li><a href="contactus.html" class="text-gray-400 hover:text-white text-sm transition">Contact
+                                Help</a></li>
+                    </ul>
+                </div>
+                <div class="lg:col-span-2">
+                    <h3 class="text-white font-bold mb-6 text-sm tracking-wide">Legal</h3>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition">Privacy Policy</a>
+                        </li>
+                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition">Terms of Service</a>
+                        </li>
+                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="lg:col-span-4">
+                    <h3 class="text-white font-bold mb-6 text-sm tracking-wide">Stay Updated</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">Subscribe to our newsletter to receive the
+                        latest updates and exclusive offers.</p>
+                    <form
+                        class="relative mb-8 max-w-md flex items-center bg-[#111] border border-white/10 p-1 rounded-md">
+                        <input type="email" placeholder="Enter your email" required
+                            class="flex-grow bg-transparent border-none px-3 text-white placeholder-gray-500 focus:outline-none text-sm" />
+                        <button type="submit"
+                            class="flex-shrink-0 bg-gradient-to-r from-[#1d4ed8] to-[#48b0d6] text-white font-semibold px-4 py-2 rounded items-center gap-2 hover:opacity-90 transition">Subscribe</button>
+                    </form>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 text-gray-400"><i data-lucide="map-pin"
+                                class="w-5 h-5 flex-shrink-0"></i><span class="text-sm">Bengaluru, Karnataka,
+                                India</span></div>
+                        <div class="flex items-center gap-3 text-gray-400"><i data-lucide="mail"
+                                class="w-5 h-5 flex-shrink-0"></i><a href="mailto:contact@shughosha.com"
+                                class="text-sm hover:text-white transition">contact@shughosha.com</a></div>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-500">
+                <p>&copy; 2026 SughOsha Enterprises. All rights reserved.</p>
+                <div class="flex items-center gap-1.5">Designed with <span class="text-[#48b0d6]">❤</span> by SughOsha
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="cursor-blob" id="cursor-blob"></div>
+
+    <script>
+        lucide.createIcons();
+
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- Custom Cursor ---
+        const cursorBlob = document.getElementById('cursor-blob');
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2, blobX = mouseX, blobY = mouseY;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateBlob() {
+            blobX += (mouseX - blobX) * 0.15;
+            blobY += (mouseY - blobY) * 0.15;
+            cursorBlob.style.left = `${blobX}px`;
+            cursorBlob.style.top = `${blobY}px`;
+            requestAnimationFrame(animateBlob);
+        }
+        animateBlob();
+
+        function attachMagneticHover() {
+            const interactables = document.querySelectorAll('a, button, .glass-card-dark-style, input, [onclick]');
+            interactables.forEach(el => {
+                el.addEventListener('mouseenter', () => cursorBlob.classList.add('hover-active'));
+                el.addEventListener('mouseleave', () => cursorBlob.classList.remove('hover-active'));
+            });
+        }
+        setTimeout(attachMagneticHover, 500);
+
+        // --- Initialization and scroll events ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initAmbientReveal();
+            gsap.registerPlugin(ScrollTrigger);
+
+            const scrollElements = document.querySelectorAll('.scroll-hidden-cinema');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('scroll-visible-cinema');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" });
+            scrollElements.forEach(el => observer.observe(el));
+
+            initBackgroundTwinkle();
+        });
+
+        function initAmbientReveal() {
+            const textContainer = document.querySelector('.hero-text-content-wrapper');
+            setTimeout(() => { textContainer.classList.add('hero-text-revealed'); }, 500);
+        }
+
+        function initBackgroundTwinkle() {
+            const bgContainer = document.getElementById('background-fx');
+            for (let i = 0; i < 30; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('blink-dot');
+                dot.style.top = `${Math.random() * 100}%`;
+                dot.style.left = `${Math.random() * 100}%`;
+                dot.style.animationDelay = `${Math.random() * 5}s`;
+                dot.style.animationDuration = `${4 + Math.random() * 4}s`;
+                bgContainer.appendChild(dot);
+            }
+        }
+
+        // =====================================================================
+        // PROFESSIONAL 3D WATERFALL ENGINE (Three.js)
+        // Global fixed canvas with falling diamonds behind the UI
+        // =====================================================================
+        const stage = document.getElementById('prism-stage');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 25;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        stage.appendChild(renderer.domElement);
+
+        // --- HERO GROUP (Torus) ---
+        const heroGroup = new THREE.Group();
+        scene.add(heroGroup);
+
+        const knotGeo = new THREE.TorusKnotGeometry(4, 1.2, 150, 40);
+        const knotMat = new THREE.MeshPhysicalMaterial({
+            color: 0x1e3a8a,
+            emissive: 0x0f172a,
+            metalness: 0.1, roughness: 0.1, transmission: 0.9, thickness: 1.5,
+            clearcoat: 1.0, clearcoatRoughness: 0.1, transparent: true, opacity: 0.85
+        });
+        const knot = new THREE.Mesh(knotGeo, knotMat);
+        heroGroup.add(knot);
+
+        const icoGeo = new THREE.IcosahedronGeometry(7, 1);
+        const icoMat = new THREE.MeshBasicMaterial({
+            color: 0x48b0d6, wireframe: true, transparent: true, opacity: 0.25
+        });
+        const ico = new THREE.Mesh(icoGeo, icoMat);
+        heroGroup.add(ico);
+
+        function updateHeroPosition() {
+            if (window.innerWidth < 768) {
+                heroGroup.position.set(0, -2, -5);
+            } else {
+                heroGroup.position.set(7, 0, 0);
+            }
+        }
+        updateHeroPosition();
+
+        // Scroll trigger for Hero Group to make it scroll up and away
+        setTimeout(() => {
+            gsap.to(heroGroup.position, {
+                y: 30, // Moves up out of view
+                ease: "none",
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "1000px top",
+                    scrub: 1
+                }
+            });
+        }, 100);
+
+        // --- WATERFALL GROUP (Falling Diamonds) ---
+        const waterfallGroup = new THREE.Group();
+        scene.add(waterfallGroup);
+
+        const fallingShapes = [];
+        const shapeColors = [0xffffff, 0x48b0d6, 0x1d4ed8, 0x0f172a];
+
+        for (let i = 0; i < 150; i++) {
+            const size = Math.random() * 0.8 + 0.2;
+            const type = Math.floor(Math.random() * 3);
+            let geo;
+            if (type === 0) geo = new THREE.OctahedronGeometry(size, 0); // Diamond
+            else if (type === 1) geo = new THREE.TetrahedronGeometry(size, 0); // Pyramid
+            else geo = new THREE.IcosahedronGeometry(size, 0); // Gem
+
+            const mat = new THREE.MeshPhysicalMaterial({
+                color: shapeColors[Math.floor(Math.random() * shapeColors.length)],
+                metalness: 0.7,
+                roughness: 0.1,
+                transmission: 0.9,
+                thickness: 0.5,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            const mesh = new THREE.Mesh(geo, mat);
+
+            // Start highly spread out above and across the screen
+            mesh.position.set(
+                (Math.random() - 0.5) * 60, // Spread wide on X
+                (Math.random() - 0.5) * 80 + 20, // Start randomly high up
+                (Math.random() - 0.5) * 30 - 15 // Spread on Z
+            );
+
+            mesh.userData = {
+                speed: Math.random() * 0.08 + 0.03, // Falling speed
+                rx: (Math.random() - 0.5) * 0.05,
+                ry: (Math.random() - 0.5) * 0.05,
+                rz: (Math.random() - 0.5) * 0.05,
+                resetY: 40 + Math.random() * 20 // Height to respawn at
+            };
+
+            fallingShapes.push(mesh);
+            waterfallGroup.add(mesh);
+        }
+
+        // --- 3D Scene Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const dl1 = new THREE.DirectionalLight(0x48b0d6, 3);
+        dl1.position.set(10, 20, 20);
+        scene.add(dl1);
+
+        const dl2 = new THREE.DirectionalLight(0xffffff, 2);
+        dl2.position.set(-20, -20, 10);
+        scene.add(dl2);
+
+        let time = 0;
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            time += 0.015;
+
+            // Animate Hero Group
+            knot.rotation.y += 0.004;
+            knot.rotation.x += 0.002;
+            ico.rotation.y -= 0.002;
+            ico.rotation.z += 0.001;
+
+            // Animate Waterfall
+            fallingShapes.forEach(shape => {
+                shape.position.y -= shape.userData.speed; // Fall down
+                shape.rotation.x += shape.userData.rx;
+                shape.rotation.y += shape.userData.ry;
+                shape.rotation.z += shape.userData.rz;
+
+                // Respawn at the top when falling past the bottom of the camera
+                if (shape.position.y < -35) {
+                    shape.position.y = shape.userData.resetY;
+                    shape.position.x = (Math.random() - 0.5) * 60; // Pick new X position
+                }
+            });
+
+            // Very subtle mouse parallax for the whole scene
+            const targetX = (mouseX / window.innerWidth) * 2 - 1;
+            const targetY = -(mouseY / window.innerHeight) * 2 + 1;
+
+            heroGroup.rotation.y += (targetX * 0.1 - heroGroup.rotation.y) * 0.05;
+            heroGroup.rotation.x += (-targetY * 0.1 - heroGroup.rotation.x) * 0.05;
+
+            waterfallGroup.position.x += (targetX * 2 - waterfallGroup.position.x) * 0.02;
+            waterfallGroup.position.y += (targetY * 2 - waterfallGroup.position.y) * 0.02;
+
+            renderer.render(scene, camera);
+        }
+        animate3D();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            updateHeroPosition();
+        });
+
+    </script>
+</body>
+
+</html>

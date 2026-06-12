@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Careers - Join the SughOsha Team</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="authGuard.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        /* --- Core Theme Colors --- */
+        :root {
+            --accent-cyan: #48b0d6;
+            --accent-purple: #8b5cf6;
+        }
+
+        /* --- 1. Border Tracing Setup --- */
+        @property --a {
+            syntax: '<angle>';
+            inherits: false;
+            initial-value: 0deg;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030305;
+            /* Slightly darker base for better contrast */
+        }
+
+        /* Base Glass Effect - Darkened for better text readability */
+        .glass {
+            background: rgba(5, 5, 8, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card {
+            /* Darker card background to contrast with the bright 3D butterfly */
+            background: rgba(10, 10, 15, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* --- CINEMATIC CARD: Border Tracing --- */
+        .job-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 1.5rem;
+            padding: 2px;
+            background: conic-gradient(from var(--a, 0deg), transparent 70%, var(--accent-cyan) 85%, #fff 95%, var(--accent-cyan) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes border-trace {
+            0% {
+                --a: 0deg;
+            }
+
+            100% {
+                --a: 360deg;
+            }
+        }
+
+        .job-card:hover::before {
+            opacity: 1;
+            animation: border-trace 3s linear infinite;
+        }
+
+        /* --- Holographic Sweep --- */
+        .job-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 55%, transparent 60%);
+            background-size: 200% 100%;
+            background-position: -200% 0;
+            pointer-events: none;
+            transition: background-position 0.8s ease;
+            border-radius: 1.5rem;
+            z-index: 5;
+        }
+
+        .job-card:hover::after {
+            background-position: 200% 0;
+            transition: background-position 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* --- THE "WOW" HOVER GLOW --- */
+        .job-card:hover {
+            cursor: pointer;
+            z-index: 50;
+        }
+
+        .card-magic-glow {
+            /* Aura effect when butterfly dives */
+            box-shadow:
+                0 0 50px 10px rgba(72, 176, 214, 0.3),
+                0 0 80px 20px rgba(139, 92, 246, 0.15),
+                inset 0 0 20px rgba(72, 176, 214, 0.15) !important;
+            border-color: rgba(72, 176, 214, 0.8) !important;
+            transform: translateY(-8px) scale(1.03) !important;
+            background: rgba(72, 176, 214, 0.05) !important;
+        }
+
+        /* --- Animation Helpers --- */
+        .opacity-0 {
+            opacity: 0 !important;
+        }
+
+        .translate-y-8 {
+            transform: translateY(2rem) !important;
+        }
+
+        /* Modal Styles */
+        .perspective-container {
+            perspective: 1000px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 110;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 2rem;
+            overflow: hidden;
+        }
+
+        .flip-card-front {
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .flip-card-back {
+            background: #111;
+            transform: rotateY(180deg);
+            border: 1px solid rgba(72, 176, 214, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #modal-bg-overlay {
+            transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
+        }
+
+        /* --- CURSOR BLOB --- */
+        .cursor-blob {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(72, 176, 214, 0.6) 0%, rgba(72, 176, 214, 0) 70%);
+            pointer-events: none;
+            z-index: 99999;
+            mix-blend-mode: screen;
+            transition: width 0.3s ease-out, height 0.3s ease-out, background 0.3s ease-out;
+            transform: translate(-50%, -50%);
+            will-change: left, top, width, height;
+        }
+
+        .cursor-blob.hover-active {
+            width: 90px;
+            height: 90px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, rgba(234, 88, 12, 0) 70%);
+        }
+
+        /* --- 3D CANVAS LAYER --- */
+        #butterfly-canvas-container {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            /* Pushed firmly to the back */
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        /* Ensures cards are clickable over the canvas */
+        .interactive-layer {
+            position: relative;
+            z-index: 20;
+        }
+    </style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="text-white min-h-screen selection:bg-[#48b0d6] selection:text-white overflow-x-hidden">
+
+    <div class="cursor-blob" id="cursor-blob"></div>
+
+    <div id="butterfly-canvas-container"></div>
+
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div
+            class="absolute -top-[10%] right-[20%] w-[40%] h-[40%] bg-[#48b0d6] rounded-full mix-blend-screen filter blur-[150px] opacity-10">
+        </div>
+        <div
+            class="absolute bottom-[0%] left-[10%] w-[30%] h-[30%] bg-purple-900 rounded-full mix-blend-screen filter blur-[150px] opacity-10">
+        </div>
+    </div>
+
+    <nav class="glass fixed w-full z-50 top-0 left-0 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="index.html" class="flex items-center gap-0">
+                        <img src="log.png" onerror="this.style.display='none'" alt="SughOsha Logo"
+                            class="h-12 w-auto object-contain mr-2" />
+                        <span class="text-2xl font-bold text-white tracking-tight">Sugh<span
+                                class="text-[#48b0d6]">Osha</span></span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-10">
+                    <div class="flex space-x-8 items-center">
+                        <a href="index.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">Home</a>
+                        <a href="services.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">Services</a>
+                        <a href="careers.html"
+                            class="text-white font-medium transition text-sm tracking-wide border-b-2 border-[#48b0d6]">Careers
+                            / Hiring</a>
+                        <a href="about.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">About
+                            Us</a>
+                    </div>
+                    <div class="flex items-center space-x-6 pl-2 border-l border-white/10">
+                        <a href="login.html" class="text-white hover:text-gray-300 font-bold text-lg">Log in</a>
+                        <a href="apply.html"
+                            class="bg-[#48b0d6] text-white hover:bg-[#3a9cbd] px-6 py-2.5 rounded-full font-medium shadow-[0_0_20px_rgba(72,176,214,0.4)] transition-all duration-300 ease-out transform hover:scale-110 hover:shadow-[0_0_30px_rgba(72,176,214,0.6)]">Apply
+                            Now</a>
+                    </div>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMenu()" class="text-gray-300 hover:text-white focus:outline-none"><i
+                            data-lucide="menu" class="w-6 h-6"></i></button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden glass border-t border-white/10 absolute w-full left-0 z-50">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="index.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">Home</a>
+                <a href="services.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">Services</a>
+                <a href="careers.html"
+                    class="block px-3 py-2 text-white font-bold bg-white/20 rounded-md border-b-2 border-[#48b0d6]">Careers</a>
+                <a href="about.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">About Us</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="interactive-layer pt-36 pb-12 px-4 sm:px-6 lg:px-8 text-center pointer-events-none">
+        <div class="max-w-4xl mx-auto">
+            <span
+                class="inline-block py-1 px-3 rounded-full bg-[#48b0d6]/10 border border-[#48b0d6]/20 text-[#48b0d6] text-sm font-semibold uppercase tracking-wider mb-6">Join
+                Our Team</span>
+            <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">We Are Hiring <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-[#48b0d6] to-cyan-200">Creators.</span>
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">Join a team of visionaries
+                shaping the future of digital communication and cinematic storytelling.</p>
+        </div>
+    </section>
+
+    <section class="interactive-layer py-12 px-4 sm:px-6 lg:px-8 mb-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="jobs-grid">
+
+                <div onclick="openCard(this)" data-title="Freelance Videographers" data-icon="video"
+                    data-type="Project Based"
+                    data-desc="We need cinematic storytellers who can capture high-quality footage for corporate events and creative ads. Must have own gear."
+                    data-img="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=600&auto=format&fit=crop"
+                    class="glass-card job-card rounded-2xl p-6 flex flex-col items-center text-center group opacity-0 translate-y-8">
+                    <div
+                        class="w-14 h-14 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-4 group-hover:scale-110 transition">
+                        <i data-lucide="video" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Freelance Videographers</h3>
+                    <span class="text-sm text-gray-400 mb-4">Project Based</span>
+                    <span
+                        class="mt-auto text-sm text-[#48b0d6] flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">View
+                        Details</span>
+                </div>
+
+                <div onclick="openCard(this)" data-title="Cameramen" data-icon="camera" data-type="Freelance / Contract"
+                    data-desc="Looking for operators with experience in studio settings and live broadcasting. Precision and lighting knowledge required."
+                    data-img="https://images.unsplash.com/photo-1601506521937-0121a7fc2a6b?q=80&w=600&auto=format&fit=crop"
+                    class="glass-card job-card rounded-2xl p-6 flex flex-col items-center text-center group opacity-0 translate-y-8">
+                    <div
+                        class="w-14 h-14 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-4 group-hover:scale-110 transition">
+                        <i data-lucide="camera" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Cameramen</h3>
+                    <span class="text-sm text-gray-400 mb-4">Freelance / Contract</span>
+                    <span
+                        class="mt-auto text-sm text-[#48b0d6] flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">View
+                        Details</span>
+                </div>
+
+                <div onclick="openCard(this)" data-title="Video Editors" data-icon="film" data-type="Remote Friendly"
+                    data-desc="Mastery of Premiere Pro and After Effects is a must. You will be turning raw footage into compelling social media reels."
+                    data-img="https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=800"
+                    class="glass-card job-card rounded-2xl p-6 flex flex-col items-center text-center group opacity-0 translate-y-8">
+                    <div
+                        class="w-14 h-14 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-4 group-hover:scale-110 transition">
+                        <i data-lucide="film" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Video Editors</h3>
+                    <span class="text-sm text-gray-400 mb-4">Remote Friendly</span>
+                    <span
+                        class="mt-auto text-sm text-[#48b0d6] flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">View
+                        Details</span>
+                </div>
+
+                <div onclick="openCard(this)" data-title="Graphic Designers" data-icon="palette" data-type="Freelance"
+                    data-desc="Create stunning visuals for digital campaigns. Experience with Photoshop, Illustrator, and branding identity is key."
+                    data-img="https://images.unsplash.com/photo-1626785774625-ddcddc3445e9?q=80&w=600&auto=format&fit=crop"
+                    class="glass-card job-card rounded-2xl p-6 flex flex-col items-center text-center group opacity-0 translate-y-8">
+                    <div
+                        class="w-14 h-14 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-4 group-hover:scale-110 transition">
+                        <i data-lucide="palette" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Graphic Designers</h3>
+                    <span class="text-sm text-gray-400 mb-4">Freelance</span>
+                    <span
+                        class="mt-auto text-sm text-[#48b0d6] flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">View
+                        Details</span>
+                </div>
+
+                <div onclick="openCard(this)" data-title="Social Media Interns" data-icon="smartphone"
+                    data-type="Internship"
+                    data-desc="Live and breathe trends? Help us manage communities and create viral content strategies."
+                    data-img="https://images.unsplash.com/photo-1611926653458-09294b3142bf?q=80&w=600&auto=format&fit=crop"
+                    class="glass-card job-card rounded-2xl p-6 flex flex-col items-center text-center group opacity-0 translate-y-8">
+                    <div
+                        class="w-14 h-14 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-4 group-hover:scale-110 transition">
+                        <i data-lucide="smartphone" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Social Media Interns</h3>
+                    <span class="text-sm text-gray-400 mb-4">Internship</span>
+                    <span
+                        class="mt-auto text-sm text-[#48b0d6] flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">View
+                        Details</span>
+                </div>
+
+                <div onclick="openCard(this)" data-title="Content Writers" data-icon="pen-tool"
+                    data-type="Freelance / Part-time" data-desc="SEO knowledge and script-writing experience required."
+                    data-img="https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=600&auto=format&fit=crop"
+                    class="glass-card job-card rounded-2xl p-6 flex flex-col items-center text-center group opacity-0 translate-y-8">
+                    <div
+                        class="w-14 h-14 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-4 group-hover:scale-110 transition">
+                        <i data-lucide="pen-tool" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Content Writers</h3>
+                    <span class="text-sm text-gray-400 mb-4">Freelance / Part-time</span>
+                    <span
+                        class="mt-auto text-sm text-[#48b0d6] flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">View
+                        Details</span>
+                </div>
+
+                <div onclick="openCard(this)" data-title="Voice Artists" data-icon="mic" data-type="Project Based"
+                    data-desc="Professional VO talent with home studio setups."
+                    data-img="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?q=80&w=600&auto=format&fit=crop"
+                    class="glass-card job-card rounded-2xl p-6 flex flex-col items-center text-center group opacity-0 translate-y-8">
+                    <div
+                        class="w-14 h-14 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-4 group-hover:scale-110 transition">
+                        <i data-lucide="mic" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Voice Artists</h3>
+                    <span class="text-sm text-gray-400 mb-4">Project Based</span>
+                    <span
+                        class="mt-auto text-sm text-[#48b0d6] flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">View
+                        Details</span>
+                </div>
+
+                <div onclick="openCard(this)" data-title="Website Developer" data-icon="code-2"
+                    data-type="Freelance / Contract"
+                    data-desc="Full-stack or Front-end developers familiar with modern frameworks."
+                    data-img="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=600&auto=format&fit=crop"
+                    class="glass-card job-card rounded-2xl p-6 flex flex-col items-center text-center group opacity-0 translate-y-8">
+                    <div
+                        class="w-14 h-14 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-4 group-hover:scale-110 transition">
+                        <i data-lucide="code-2" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Website Developer</h3>
+                    <span class="text-sm text-gray-400 mb-4">Freelance / Contract</span>
+                    <span
+                        class="mt-auto text-sm text-[#48b0d6] flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">View
+                        Details</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="modal-bg-overlay"
+        class="fixed inset-0 z-[100] bg-black/80 opacity-0 backdrop-blur-none pointer-events-none transition-all duration-500"
+        onclick="closeModal()"></div>
+    <div class="perspective-container opacity-0 pointer-events-none" id="modal-card-container">
+        <div class="flip-card-inner" id="flip-card">
+            <div class="flip-card-front glass-card flex flex-col items-center justify-center p-8">
+                <div id="modal-icon-container"
+                    class="w-20 h-20 rounded-full bg-[#48b0d6]/10 flex items-center justify-center text-[#48b0d6] mb-6">
+                </div>
+                <h2 id="modal-title" class="text-2xl font-bold text-white mb-2">Job Title</h2>
+                <p id="modal-type" class="text-gray-400">Job Type</p>
+                <p class="mt-8 text-[#48b0d6] animate-pulse">Accessing Data...</p>
+            </div>
+            <div class="flip-card-back glass-card">
+                <div class="h-1/2 w-full relative">
+                    <img id="modal-img" src="" alt="Job Context" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent"></div>
+                </div>
+                <div class="h-1/2 p-8 flex flex-col justify-between bg-[#0a0a0a]">
+                    <div>
+                        <h3 class="text-xl font-bold text-[#48b0d6] mb-3">Role Overview</h3>
+                        <p id="modal-desc" class="text-gray-300 text-sm leading-relaxed"></p>
+                    </div>
+                    <div class="flex gap-4 mt-4">
+                        <button onclick="closeModal()"
+                            class="flex-1 py-3 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/5 transition">Close</button>
+                        <a href="apply.html"
+                            class="flex-1 py-3 bg-[#48b0d6] rounded-xl text-center text-white text-sm font-bold shadow-[0_0_20px_rgba(72,176,214,0.3)] hover:bg-[#3a9cbd] transition">Apply
+                            Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="interactive-layer border-t border-white/10 bg-[#050505] pt-20 pb-8 relative z-20 font-sans mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 mb-16">
+                <div class="lg:col-span-4 lg:pr-8">
+                    <a href="index.html" class="flex items-center gap-3 mb-6">
+                        <img src="log.png" alt="SughOsha Logo" class="h-8 w-auto" onerror="this.style.display='none'" />
+                        <span class="text-2xl font-bold text-white tracking-tight">Sugh<span
+                                class="text-[#48b0d6]">Osha</span></span>
+                    </a>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-8">Providing world-class corporate training,
+                        digital strategy, and creative media production services for modern enterprises ready to evolve
+                        and lead their industries.</p>
+                </div>
+            </div>
+            <div
+                class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-gray-500">
+                <p>&copy; 2026 SughOsha Enterprises. All rights reserved.</p>
+                <div class="flex items-center gap-1.5">Designed with <span class="text-red-500">❤</span> by SughOsha
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
+
+        // =====================================================================
+        // PROCEDURAL 3D BUTTERFLY ENGINE (Three.js) - Refined for Readability
+        // =====================================================================
+        const p_container = document.getElementById('butterfly-canvas-container');
+        const p_scene = new THREE.Scene();
+        // Move camera back to reduce the size of the butterfly in the background
+        const p_camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+        p_camera.position.z = 180;
+
+        const p_renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        p_renderer.setSize(window.innerWidth, window.innerHeight);
+        p_renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        p_container.appendChild(p_renderer.domElement);
+
+        const butterfly = new THREE.Group();
+        p_scene.add(butterfly);
+
+        // Subdued core light during idle
+        const coreLight = new THREE.PointLight(0xffffff, 1.5, 150);
+        butterfly.add(coreLight);
+
+        // ---- MATERIALS ----
+        // Lower opacity and darker blending for the main body
+        const glowMaterial = new THREE.PointsMaterial({
+            size: 1.5, // Smaller points
+            transparent: true,
+            opacity: 0.6, // Reduced opacity
+            blending: THREE.AdditiveBlending,
+            vertexColors: true,
+            depthWrite: false
+        });
+
+        // Dust material remains bright but is only spawned on hover
+        const dustMaterial = new THREE.PointsMaterial({
+            color: 0xffcc00,
+            size: 2.0,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        // ---- GENERATE GEOMETRY ----
+        const bodyGeo = new THREE.BufferGeometry();
+        const bodyCount = 800;
+        const bodyPos = new Float32Array(bodyCount * 3);
+        const bodyCol = new Float32Array(bodyCount * 3);
+        const cCore = new THREE.Color(0x8b5cf6); // Soft purple core instead of blinding white
+
+        for (let i = 0; i < bodyCount; i++) {
+            const t = Math.random() * Math.PI * 2;
+            const u = Math.random() * 2 - 1;
+            const r = Math.sqrt(1 - u * u) * 1.5;
+
+            bodyPos[i * 3] = Math.cos(t) * r;
+            bodyPos[i * 3 + 1] = Math.sin(t) * r;
+            bodyPos[i * 3 + 2] = u * 10;
+
+            bodyCol[i * 3] = cCore.r; bodyCol[i * 3 + 1] = cCore.g; bodyCol[i * 3 + 2] = cCore.b;
+        }
+        bodyGeo.setAttribute('position', new THREE.BufferAttribute(bodyPos, 3));
+        bodyGeo.setAttribute('color', new THREE.BufferAttribute(bodyCol, 3));
+        const body = new THREE.Points(bodyGeo, glowMaterial);
+        butterfly.add(body);
+
+        const leftWing = new THREE.Group();
+        const rightWing = new THREE.Group();
+        butterfly.add(leftWing);
+        butterfly.add(rightWing);
+
+        // Smoother, cooler color gradient
+        const colorInner = new THREE.Color(0x2a1050); // Very dark purple near body
+        const colorMid = new THREE.Color(0x8b5cf6);
+        const colorOuter = new THREE.Color(0x48b0d6);
+
+        function createWing(side) {
+            const wingGeo = new THREE.BufferGeometry();
+            const wingCount = 10000; // Slightly reduced density
+            const pos = new Float32Array(wingCount * 3);
+            const col = new Float32Array(wingCount * 3);
+            const offsets = new Float32Array(wingCount);
+
+            for (let i = 0; i < wingCount; i++) {
+                const isFore = Math.random() > 0.4;
+                let u = Math.random();
+                let v = Math.random();
+
+                let x, z;
+                let rRaw;
+
+                if (isFore) {
+                    let angle = v * Math.PI * 0.4 - 0.2;
+                    let maxR = 35 * (Math.sin(angle * 1.2) + 0.4);
+                    rRaw = maxR * Math.pow(u, 0.7);
+                    x = rRaw * Math.cos(angle);
+                    z = rRaw * Math.sin(angle) * -1;
+                } else {
+                    let angle = v * Math.PI * 0.5 + 0.1;
+                    let maxR = 25 * (Math.sin(angle * 2) + 0.6);
+                    rRaw = maxR * Math.pow(u, 0.7);
+                    x = rRaw * Math.cos(angle);
+                    z = rRaw * Math.sin(angle);
+                }
+
+                const y = (Math.random() - 0.5) * 1.0 * (1 - u);
+                x *= side;
+
+                pos[i * 3] = x;
+                pos[i * 3 + 1] = y;
+                pos[i * 3 + 2] = z;
+                offsets[i] = Math.abs(x) + Math.abs(z) * 0.5;
+
+                let cFinal = new THREE.Color();
+                if (rRaw < 10) {
+                    cFinal.lerpColors(colorInner, colorMid, rRaw / 10);
+                } else {
+                    cFinal.lerpColors(colorMid, colorOuter, (rRaw - 10) / 25);
+                }
+
+                col[i * 3] = cFinal.r; col[i * 3 + 1] = cFinal.g; col[i * 3 + 2] = cFinal.b;
+            }
+
+            wingGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            wingGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+            wingGeo.setAttribute('offset', new THREE.BufferAttribute(offsets, 1));
+            return new THREE.Points(wingGeo, glowMaterial);
+        }
+
+        leftWing.add(createWing(-1));
+        rightWing.add(createWing(1));
+
+        // Falling Fairy Dust System (Only active on hover)
+        const maxDust = 300;
+        const dustGeo = new THREE.BufferGeometry();
+        const dustPos = new Float32Array(maxDust * 3);
+        const dustVelocity = new Float32Array(maxDust * 3);
+        const dustLife = new Float32Array(maxDust);
+
+        for (let i = 0; i < maxDust; i++) {
+            dustPos[i * 3] = 0; dustPos[i * 3 + 1] = 0; dustPos[i * 3 + 2] = 0;
+            dustLife[i] = 0;
+        }
+        dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+        const dustParticles = new THREE.Points(dustGeo, dustMaterial);
+        p_scene.add(dustParticles);
+
+        // =====================================================================
+        // FLIGHT LOGIC
+        // =====================================================================
+        let isHovering = false;
+        let p_time = 0;
+        let butterflyTarget = new THREE.Vector3(0, 0, 0);
+        let flapAngle = 0;
+
+        function get3DTarget(domRect) {
+            const cx = domRect.left + domRect.width / 2;
+            const cy = domRect.top + domRect.height / 2;
+            const vec = new THREE.Vector3(
+                (cx / window.innerWidth) * 2 - 1,
+                -(cy / window.innerHeight) * 2 + 1,
+                0.5
+            );
+            vec.unproject(p_camera);
+            const dir = vec.sub(p_camera.position).normalize();
+            // Hover directly in front of the card
+            const distance = -p_camera.position.z / dir.z * 0.70;
+            return p_camera.position.clone().add(dir.multiplyScalar(distance));
+        }
+
+        function animateButterfly() {
+            requestAnimationFrame(animateButterfly);
+            p_time += 0.016;
+
+            const flapSpeed = isHovering ? 3.0 : 1.2; // Slower idle flap
+            flapAngle += flapSpeed * 0.016 * Math.PI * 2;
+
+            const flap = Math.sin(flapAngle) * 0.7; // Shallower flap
+
+            leftWing.rotation.z = flap;
+            rightWing.rotation.z = -flap;
+
+            const lPos = leftWing.children[0].geometry.attributes.position;
+            const lOff = leftWing.children[0].geometry.attributes.offset;
+            const rPos = rightWing.children[0].geometry.attributes.position;
+            const rOff = rightWing.children[0].geometry.attributes.offset;
+
+            for (let i = 0; i < 10000; i++) {
+                lPos.array[i * 3 + 1] = Math.sin(p_time * 3 - lOff.array[i] * 0.2) * 1.5;
+                rPos.array[i * 3 + 1] = Math.sin(p_time * 3 - rOff.array[i] * 0.2) * 1.5;
+            }
+            lPos.needsUpdate = true;
+            rPos.needsUpdate = true;
+
+            butterfly.position.y += Math.sin(flapAngle * 2) * 0.05;
+
+            if (isHovering) {
+                // DIVE TO TARGET
+                butterfly.position.lerp(butterflyTarget, 0.1); // Faster snap
+                butterfly.rotation.x = THREE.MathUtils.lerp(butterfly.rotation.x, Math.PI / 4, 0.1);
+                butterfly.rotation.z = THREE.MathUtils.lerp(butterfly.rotation.z, 0, 0.1);
+                butterfly.rotation.y = THREE.MathUtils.lerp(butterfly.rotation.y, 0, 0.1);
+
+                spawnDust();
+            } else {
+                // FIGURE-8 IDLE GLIDE - Pushed further back and wider
+                const gx = Math.sin(p_time * 0.2) * 80;
+                const gy = Math.sin(p_time * 0.4) * 30 + 10;
+                const gz = Math.cos(p_time * 0.2) * -30; // Negative Z keeps it behind text
+
+                butterflyTarget.set(gx, gy, gz);
+                butterfly.position.lerp(butterflyTarget, 0.015); // Smoother lerp
+
+                const dx = butterflyTarget.x - butterfly.position.x;
+                const dy = butterflyTarget.y - butterfly.position.y;
+                butterfly.rotation.z = THREE.MathUtils.lerp(butterfly.rotation.z, -dx * 0.03, 0.05);
+                butterfly.rotation.x = THREE.MathUtils.lerp(butterfly.rotation.x, dy * 0.02, 0.05);
+                butterfly.rotation.y = THREE.MathUtils.lerp(butterfly.rotation.y, dx * 0.01, 0.05);
+            }
+
+            updateDust();
+            p_renderer.render(p_scene, p_camera);
+        }
+
+        let dustIndex = 0;
+        function spawnDust() {
+            const positions = dustGeo.attributes.position.array;
+            for (let k = 0; k < 4; k++) {
+                positions[dustIndex * 3] = butterfly.position.x + (Math.random() - 0.5) * 20;
+                positions[dustIndex * 3 + 1] = butterfly.position.y + (Math.random() - 0.5) * 10;
+                positions[dustIndex * 3 + 2] = butterfly.position.z + (Math.random() - 0.5) * 15;
+
+                dustVelocity[dustIndex * 3] = (Math.random() - 0.5) * 0.4;
+                dustVelocity[dustIndex * 3 + 1] = -0.2 - Math.random() * 0.6;
+                dustVelocity[dustIndex * 3 + 2] = (Math.random() - 0.5) * 0.4;
+
+                dustLife[dustIndex] = 1.0;
+                dustIndex = (dustIndex + 1) % maxDust;
+            }
+        }
+
+        function updateDust() {
+            const positions = dustGeo.attributes.position.array;
+            let needsUpdate = false;
+            for (let i = 0; i < maxDust; i++) {
+                if (dustLife[i] > 0) {
+                    dustLife[i] -= 0.02; // Fade out faster
+
+                    positions[i * 3] += dustVelocity[i * 3];
+                    positions[i * 3 + 1] += dustVelocity[i * 3 + 1];
+                    positions[i * 3 + 2] += dustVelocity[i * 3 + 2];
+
+                    if (dustLife[i] <= 0) {
+                        positions[i * 3 + 1] = 9999;
+                    }
+                    needsUpdate = true;
+                }
+            }
+            if (needsUpdate) dustGeo.attributes.position.needsUpdate = true;
+        }
+
+        window.addEventListener('resize', () => {
+            p_camera.aspect = window.innerWidth / window.innerHeight;
+            p_camera.updateProjectionMatrix();
+            p_renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animateButterfly();
+
+        // =====================================================================
+        // PAGE LOAD & INTERACTION CONTROLLER (GSAP)
+        // =====================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.job-card');
+
+            // INTRO
+            butterfly.position.set(0, 200, -200);
+            const tl = gsap.timeline();
+
+            tl.to(butterfly.position, {
+                y: 0,
+                z: -30,
+                duration: 2.5,
+                ease: "power3.inOut"
+            })
+                .to(butterfly.rotation, {
+                    y: Math.PI * 2,
+                    duration: 1.5,
+                    ease: "power2.inOut"
+                }, "-=1.5")
+                // Flash core during intro
+                .to(coreLight, {
+                    intensity: 6,
+                    duration: 0.3,
+                    yoyo: true,
+                    repeat: 1
+                }, "-=0.8")
+                .call(() => {
+                    cards.forEach((card, i) => {
+                        setTimeout(() => {
+                            card.classList.remove('opacity-0', 'translate-y-8');
+                        }, i * 120);
+                    });
+                });
+
+            // HOVER
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    isHovering = true;
+                    butterflyTarget = get3DTarget(card.getBoundingClientRect());
+                    card.classList.add('card-butterfly-glow');
+                    // Brighten core on hover
+                    gsap.to(coreLight, { intensity: 6, duration: 0.3 });
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    isHovering = false;
+                    card.classList.remove('card-butterfly-glow');
+                    // Dim core on leave
+                    gsap.to(coreLight, { intensity: 1.5, duration: 0.5 });
+                });
+            });
+
+            attachMagneticHover();
+        });
+
+        // --- MAGNETIC CURSOR BLOB ---
+        const cursorBlob = document.getElementById('cursor-blob');
+        let cursorX = window.innerWidth / 2, cursorY = window.innerHeight / 2;
+        let blobX = cursorX, blobY = cursorY;
+
+        document.addEventListener('mousemove', (e) => {
+            cursorX = e.clientX;
+            cursorY = e.clientY;
+        });
+
+        function animateBlob() {
+            blobX += (cursorX - blobX) * 0.15;
+            blobY += (cursorY - blobY) * 0.15;
+            cursorBlob.style.left = `${blobX}px`;
+            cursorBlob.style.top = `${blobY}px`;
+            requestAnimationFrame(animateBlob);
+        }
+        animateBlob();
+
+        function attachMagneticHover() {
+            const interactables = document.querySelectorAll('a, button, .job-card, input');
+            interactables.forEach(el => {
+                el.addEventListener('mouseenter', () => cursorBlob.classList.add('hover-active'));
+                el.addEventListener('mouseleave', () => cursorBlob.classList.remove('hover-active'));
+            });
+        }
+
+        // --- MODAL LOGIC ---
+        const modalBgOverlay = document.getElementById('modal-bg-overlay');
+        const modalCardContainer = document.getElementById('modal-card-container');
+        const flipCard = document.getElementById('flip-card');
+        let lastClickedRect = null;
+
+        function openCard(el) {
+            const rect = el.getBoundingClientRect();
+            lastClickedRect = rect;
+
+            document.getElementById('modal-title').innerText = el.getAttribute('data-title');
+            document.getElementById('modal-type').innerText = el.getAttribute('data-type');
+            document.getElementById('modal-desc').innerText = el.getAttribute('data-desc');
+            document.getElementById('modal-img').src = el.getAttribute('data-img');
+
+            const iconName = el.getAttribute('data-icon');
+            document.getElementById('modal-icon-container').innerHTML = `<i data-lucide="${iconName}" class="w-10 h-10"></i>`;
+            lucide.createIcons();
+
+            modalCardContainer.style.transition = 'none';
+            modalCardContainer.style.top = rect.top + 'px';
+            modalCardContainer.style.left = rect.left + 'px';
+            modalCardContainer.style.width = rect.width + 'px';
+            modalCardContainer.style.height = rect.height + 'px';
+            modalCardContainer.offsetHeight;
+
+            modalCardContainer.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            modalCardContainer.classList.remove('opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                modalBgOverlay.classList.remove('opacity-0', 'pointer-events-none');
+                modalBgOverlay.classList.add('opacity-100', 'backdrop-blur-md');
+
+                const fw = Math.min(window.innerWidth * 0.9, 450), fh = 550;
+                modalCardContainer.style.top = (window.innerHeight - fh) / 2 + 'px';
+                modalCardContainer.style.left = (window.innerWidth - fw) / 2 + 'px';
+                modalCardContainer.style.width = fw + 'px';
+                modalCardContainer.style.height = fh + 'px';
+
+                setTimeout(() => flipCard.classList.add('flipped'), 300);
+            }, 10);
+        }
+
+        function closeModal() {
+            flipCard.classList.remove('flipped');
+            modalBgOverlay.classList.remove('opacity-100', 'backdrop-blur-md');
+            modalBgOverlay.classList.add('opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                if (lastClickedRect) {
+                    modalCardContainer.style.top = lastClickedRect.top + 'px';
+                    modalCardContainer.style.left = lastClickedRect.left + 'px';
+                    modalCardContainer.style.width = lastClickedRect.width + 'px';
+                    modalCardContainer.style.height = lastClickedRect.height + 'px';
+                }
+                setTimeout(() => {
+                    modalCardContainer.classList.add('opacity-0', 'pointer-events-none');
+                }, 400);
+            }, 250);
+        }
+    </script>
+</body>
+
+</html>

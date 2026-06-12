@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services - SughOsha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="authGuard.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Base Glass Effect */
+        .glass {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Card Glass Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            /* Increased base transition speed slightly so hover feels snappier after entrance */
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+            position: relative;
+            z-index: 10;
+            /* Cards always above 3D scene */
+        }
+
+        /* SPOTLIGHT EFFECT LOGIC */
+        .services-container:hover .glass-card:not(:hover) {
+            filter: blur(5px) grayscale(0.6);
+            opacity: 0.4;
+            transform: scale(0.95);
+        }
+
+        .glass-card:hover {
+            transform: scale(1.15);
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #48b0d6;
+            box-shadow:
+                0 0 0 1px rgba(72, 176, 214, 0.3),
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                0 0 40px rgba(72, 176, 214, 0.4);
+            filter: blur(0) grayscale(0);
+            opacity: 1;
+        }
+
+        /* Image Gradient Overlay */
+        .image-overlay {
+            background: linear-gradient(to top, rgba(5, 5, 5, 0.95), rgba(5, 5, 5, 0.1));
+        }
+
+        /* Headline Text Shrink Effect */
+        .anim-text-shrink {
+            /* Smooth, slow ease-out */
+            transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 1.2s ease-out;
+        }
+
+        /* Image Fade In Effect */
+        .anim-fade-in {
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        /* Icon Fly-in "Bouncy" Effect */
+        .anim-bouncy-flyin {
+            /* Custom bezier curve for a subtle bounce effect */
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.8s ease-out;
+        }
+
+        /* Helper classes used by JS for initial states */
+        .start-scaled {
+            transform: scale(1.4) !important;
+        }
+
+        .start-translated-left {
+            transform: translateX(-3rem) !important;
+        }
+
+        .start-translated-right {
+            transform: translateX(3rem) !important;
+        }
+
+        .start-translated-up {
+            transform: translateY(-3rem) !important;
+        }
+
+        .start-translated-down {
+            transform: translateY(3rem) !important;
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* WebGL container, fixed and behind content */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            /* Let clicks pass through to content */
+        }
+    </style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="bg-[#010101] text-white min-h-screen selection:bg-[#48b0d6] selection:text-white relative">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <div id="webgl-container"></div>
+
+    <nav class="glass fixed w-full z-50 top-0 left-0 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-50">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="index.html" class="flex items-center gap-0">
+                        <img src="log.png" onerror="this.style.display='none'" alt="ShuGhosha Logo"
+                            class="h-12 w-auto object-contain mr-2" />
+                        <span class="text-2xl font-bold text-white tracking-tight">
+                            Sugh<span class="text-[#48b0d6]">Osha</span>
+                        </span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-10">
+                    <div class="flex space-x-8">
+                        <a href="index.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">Home</a>
+                        <a href="services.html"
+                            class="text-white font-medium transition text-sm tracking-wide border-b-2 border-[#48b0d6]">Services</a>
+                        <a href="careers.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">Careers
+                            / Hiring</a>
+                        <a href="about.html"
+                            class="text-gray-300 hover:text-white font-medium transition text-sm tracking-wide">About
+                            Us</a>
+                    </div>
+                    <div class="flex items-center space-x-6 pl-2 border-l border-white/10">
+                        <a href="login.html" class="text-white hover:text-gray-300 font-bold text-lg">Log in</a>
+                        <a href="contactus.html"
+                            class="bg-[#48b0d6] text-white hover:bg-[#3a9cbd] px-6 py-2.5 rounded-full font-medium shadow-[0_0_20px_rgba(72,176,214,0.4)] transition-all duration-300 ease-out transform hover:scale-110 hover:shadow-[0_0_30px_rgba(72,176,214,0.6)]">
+                            Get Started
+                        </a>
+                    </div>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMenu()" class="text-gray-300 hover:text-white focus:outline-none">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden glass border-t border-white/10 absolute w-full left-0 z-40">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="index.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">Home</a>
+                <a href="services.html"
+                    class="block px-3 py-2 text-white bg-white/10 rounded-md border-l-4 border-[#48b0d6]">Services</a>
+                <a href="about.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">Careers</a>
+                <a href="contactus.html" class="block px-3 py-2 text-gray-300 hover:text-white rounded-md">About Us</a>
+                <div class="pt-4 mt-2 border-t border-white/10 flex flex-col gap-3">
+                    <a href="login.html" class="block text-center text-gray-300 hover:text-white font-bold text-lg">Log
+                        in</a>
+                    <a href="contactus.html"
+                        class="block text-center bg-[#48b0d6] text-white py-2 rounded-full font-medium">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="relative z-10 min-h-screen">
+        <section class="pt-32 pb-10 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto text-center relative z-20">
+                <span
+                    class="inline-block py-1 px-3 rounded-full bg-[#48b0d6]/10 border border-[#48b0d6]/20 text-[#48b0d6] text-xs font-semibold uppercase tracking-wider mb-6">
+                    What We Offer
+                </span>
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                    Solutions that <span id="anim-headline"
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-[#48b0d6] to-cyan-200 inline-block anim-text-shrink opacity-0 start-scaled">Drive
+                        Impact</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">
+                    From corporate training to digital excellence, we provide a holistic suite of services designed to
+                    elevate your brand and empower your workforce.
+                </p>
+            </div>
+        </section>
+
+        <section class="py-12 pb-24 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto relative z-20">
+                <div class="services-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                    <div class="glass-card rounded-2xl overflow-hidden group flex flex-col h-full relative"
+                        data-service-index="0">
+                        <div class="h-48 relative overflow-hidden">
+                            <div class="absolute inset-0 image-overlay z-10"></div>
+                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800"
+                                alt="Corporate Training"
+                                class="service-img w-full h-full object-cover transition duration-700 anim-fade-in opacity-0">
+                            <div
+                                class="service-icon absolute top-4 right-4 z-20 bg-black/40 backdrop-blur-md p-2 rounded-lg border border-white/10 anim-bouncy-flyin opacity-0 start-translated-left">
+                                <i data-lucide="book-open" class="text-[#48b0d6] w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow relative z-20 -mt-10">
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-[#48b0d6] transition-colors">
+                                Kannada Training for MNCs</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6 flex-grow">
+                                Bridge the local cultural gap. Comprehensive language training modules designed
+                                specifically for non-native employees in corporate environments.
+                            </p>
+                            <a href="contactus.html"
+                                class="inline-flex items-center text-sm font-semibold text-[#48b0d6] hover:text-white transition group/link">
+                                Enquire Now <i data-lucide="arrow-right"
+                                    class="w-4 h-4 ml-2 transform group-hover/link:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl overflow-hidden group flex flex-col h-full relative"
+                        data-service-index="1">
+                        <div class="h-48 relative overflow-hidden">
+                            <div class="absolute inset-0 image-overlay z-10"></div>
+                            <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=800"
+                                alt="Web Development"
+                                class="service-img w-full h-full object-cover transition duration-700 anim-fade-in opacity-0">
+                            <div
+                                class="service-icon absolute top-4 right-4 z-20 bg-black/40 backdrop-blur-md p-2 rounded-lg border border-white/10 anim-bouncy-flyin opacity-0 start-translated-up">
+                                <i data-lucide="code-2" class="text-[#48b0d6] w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow relative z-20 -mt-10">
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-[#48b0d6] transition-colors">
+                                Website Development</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6 flex-grow">
+                                Responsive, fast, and modern websites. We build digital experiences that convert
+                                visitors into customers using the latest tech stacks.
+                            </p>
+                            <a href="contactus.html"
+                                class="inline-flex items-center text-sm font-semibold text-[#48b0d6] hover:text-white transition group/link">
+                                Start Project <i data-lucide="arrow-right"
+                                    class="w-4 h-4 ml-2 transform group-hover/link:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl overflow-hidden group flex flex-col h-full relative"
+                        data-service-index="2">
+                        <div class="h-48 relative overflow-hidden">
+                            <div class="absolute inset-0 image-overlay z-10"></div>
+                            <img src="https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&q=80&w=800"
+                                alt="Social Media"
+                                class="service-img w-full h-full object-cover transition duration-700 anim-fade-in opacity-0">
+                            <div
+                                class="service-icon absolute top-4 right-4 z-20 bg-black/40 backdrop-blur-md p-2 rounded-lg border border-white/10 anim-bouncy-flyin opacity-0 start-translated-right">
+                                <i data-lucide="share-2" class="text-[#48b0d6] w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow relative z-20 -mt-10">
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-[#48b0d6] transition-colors">
+                                Social Media Management</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6 flex-grow">
+                                Grow your audience organically. We handle strategy, posting, engagement, and analytics
+                                across all major platforms.
+                            </p>
+                            <a href="contactus.html"
+                                class="inline-flex items-center text-sm font-semibold text-[#48b0d6] hover:text-white transition group/link">
+                                Grow Audience <i data-lucide="arrow-right"
+                                    class="w-4 h-4 ml-2 transform group-hover/link:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl overflow-hidden group flex flex-col h-full relative"
+                        data-service-index="3">
+                        <div class="h-48 relative overflow-hidden">
+                            <div class="absolute inset-0 image-overlay z-10"></div>
+                            <img src="https://images.unsplash.com/photo-1579632652768-6cb9dcf85912?auto=format&fit=crop&q=80&w=800"
+                                alt="Video Production"
+                                class="service-img w-full h-full object-cover transition duration-700 anim-fade-in opacity-0">
+                            <div
+                                class="service-icon absolute top-4 right-4 z-20 bg-black/40 backdrop-blur-md p-2 rounded-lg border border-white/10 anim-bouncy-flyin opacity-0 start-translated-left">
+                                <i data-lucide="video" class="text-[#48b0d6] w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow relative z-20 -mt-10">
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-[#48b0d6] transition-colors">
+                                Ads & Video Production</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6 flex-grow">
+                                High-quality commercial ads and corporate videos. From scripting to post-production, we
+                                tell your story visually.
+                            </p>
+                            <a href="contactus.html"
+                                class="inline-flex items-center text-sm font-semibold text-[#48b0d6] hover:text-white transition group/link">
+                                Create Video <i data-lucide="arrow-right"
+                                    class="w-4 h-4 ml-2 transform group-hover/link:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl overflow-hidden group flex flex-col h-full relative"
+                        data-service-index="4">
+                        <div class="h-48 relative overflow-hidden">
+                            <div class="absolute inset-0 image-overlay z-10"></div>
+                            <img src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=800"
+                                alt="Microphone Studio"
+                                class="service-img w-full h-full object-cover transition duration-700 anim-fade-in opacity-0">
+                            <div
+                                class="service-icon absolute top-4 right-4 z-20 bg-black/40 backdrop-blur-md p-2 rounded-lg border border-white/10 anim-bouncy-flyin opacity-0 start-translated-down">
+                                <i data-lucide="mic" class="text-[#48b0d6] w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow relative z-20 -mt-10">
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-[#48b0d6] transition-colors">
+                                Professional Voiceovers</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6 flex-grow">
+                                Crisp, clear, and impactful voiceovers for commercials, e-learning, narration, and
+                                audiobooks in multiple languages.
+                            </p>
+                            <a href="contactus.html"
+                                class="inline-flex items-center text-sm font-semibold text-[#48b0d6] hover:text-white transition group/link">
+                                Listen Samples <i data-lucide="arrow-right"
+                                    class="w-4 h-4 ml-2 transform group-hover/link:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl overflow-hidden group flex flex-col h-full relative"
+                        data-service-index="5">
+                        <div class="h-48 relative overflow-hidden">
+                            <div class="absolute inset-0 image-overlay z-10"></div>
+                            <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=800"
+                                alt="Creative Design"
+                                class="service-img w-full h-full object-cover transition duration-700 anim-fade-in opacity-0">
+                            <div
+                                class="service-icon absolute top-4 right-4 z-20 bg-black/40 backdrop-blur-md p-2 rounded-lg border border-white/10 anim-bouncy-flyin opacity-0 start-translated-right">
+                                <i data-lucide="pen-tool" class="text-[#48b0d6] w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow relative z-20 -mt-10">
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-[#48b0d6] transition-colors">
+                                Creative Content</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6 flex-grow">
+                                Engaging blogs, stunning posters, and click-worthy thumbnails. We create content that
+                                captures attention and retains it.
+                            </p>
+                            <a href="contactus.html"
+                                class="inline-flex items-center text-sm font-semibold text-[#48b0d6] hover:text-white transition group/link">
+                                See Portfolio <i data-lucide="arrow-right"
+                                    class="w-4 h-4 ml-2 transform group-hover/link:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-white/10 bg-[#0a0a0a] pt-20 pb-8 relative z-20 font-sans">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 mb-16">
+                <div class="lg:col-span-4 lg:pr-8">
+                    <a href="index.html" class="flex items-center gap-3 mb-6">
+                        <img src="log.png" alt="SughOsha Logo" class="h-8 w-auto" onerror="this.style.display='none'" />
+                        <span class="text-2xl font-bold text-white tracking-tight">Sugh<span
+                                class="text-[#48b0d6]">Osha</span></span>
+                    </a>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-8">Providing world-class corporate training,
+                        digital strategy, and creative media production services for modern enterprises ready to evolve
+                        and lead their industries. </p>
+                    <div class="flex items-center gap-4">
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"><i
+                                data-lucide="twitter" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"><i
+                                data-lucide="instagram" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"><i
+                                data-lucide="linkedin" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition"><i
+                                data-lucide="facebook" class="w-4 h-4"></i></a>
+                    </div>
+                </div>
+                <div class="lg:col-span-2">
+                    <h3 class="text-white font-bold mb-6 text-sm tracking-wide">Company</h3>
+                    <ul class="space-y-4">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white text-sm transition">Home</a></li>
+                        <li><a href="services.html"
+                                class="text-gray-400 hover:text-white text-sm transition">Services</a></li>
+                        <li><a href="careers.html" class="text-gray-400 hover:text-white text-sm transition">Careers</a>
+                        </li>
+                        <li><a href="about.html" class="text-gray-400 hover:text-white text-sm transition">About Us</a>
+                        </li>
+                        <li><a href="contactus.html" class="text-gray-400 hover:text-white text-sm transition">Contact
+                                Help</a></li>
+                    </ul>
+                </div>
+                <div class="lg:col-span-2">
+                    <h3 class="text-white font-bold mb-6 text-sm tracking-wide">Legal</h3>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition">Privacy Policy</a>
+                        </li>
+                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition">Terms of Service</a>
+                        </li>
+                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="lg:col-span-4">
+                    <h3 class="text-white font-bold mb-6 text-sm tracking-wide">Stay Updated</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">Subscribe to our newsletter to receive the
+                        latest updates, news, and exclusive offers.</p>
+                    <form
+                        class="relative mb-8 max-w-md flex items-center bg-[#111] border border-white/10 p-1 rounded-md">
+                        <input type="email" placeholder="Enter your email" required
+                            class="flex-grow bg-transparent border-none px-3 text-white placeholder-gray-500 focus:outline-none text-sm" />
+                        <button type="submit"
+                            class="flex-shrink-0 bg-gradient-to-r from-[#ea580c] to-red-500 text-white font-semibold px-4 py-2 rounded items-center gap-2 hover:opacity-90 transition">Subscribe</button>
+                    </form>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 text-gray-400"><i data-lucide="map-pin"
+                                class="w-5 h-5 flex-shrink-0"></i><span class="text-sm">Bengaluru, Karnataka,
+                                India</span></div>
+                        <div class="flex items-center gap-3 text-gray-400"><i data-lucide="mail"
+                                class="w-5 h-5 flex-shrink-0"></i><a href="mailto:contact@shughosha.com"
+                                class="text-sm hover:text-white transition">contact@shughosha.com</a></div>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-500">
+                <p>&copy; 2026 SughOsha Enterprises. All rights reserved.</p>
+                <div class="flex items-center gap-1.5">Designed with <span class="text-red-500">❤</span> by SughOsha
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .cursor-blob {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(72, 176, 214, 0.8) 0%, rgba(72, 176, 214, 0) 70%);
+            pointer-events: none;
+            z-index: 99999;
+            mix-blend-mode: screen;
+            transition: width 0.3s ease-out, height 0.3s ease-out, background 0.3s ease-out;
+            transform: translate(-50%, -50%);
+            will-change: left, top, width, height;
+        }
+
+        .cursor-blob.hover-active {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(234, 88, 12, 0.6) 0%, rgba(234, 88, 12, 0) 70%);
+        }
+    </style>
+
+    <div class="cursor-blob" id="cursor-blob"></div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- ENTRANCE ANIMATION SCRIPT ---
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Headline Animation
+            const headline = document.getElementById('anim-headline');
+            if (headline) {
+                setTimeout(() => {
+                    headline.classList.remove('opacity-0', 'start-scaled');
+                }, 100);
+            }
+
+            // Image Fade-in (Staggered)
+            const serviceImages = document.querySelectorAll('.service-img');
+            serviceImages.forEach((img, index) => {
+                setTimeout(() => {
+                    img.classList.remove('opacity-0');
+                }, 200 + (index * 100));
+            });
+
+            // Icon Fly-in (Staggered)
+            const serviceIcons = document.querySelectorAll('.service-icon');
+            serviceIcons.forEach((icon, index) => {
+                setTimeout(() => {
+                    icon.classList.remove('opacity-0', 'start-translated-left', 'start-translated-right', 'start-translated-up', 'start-translated-down');
+                }, 300 + (index * 100));
+            });
+        });
+
+        // --- 3D INTERSTELLAR SCENE SCRIPT ---
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        // Base fog to blend edges cleanly with background
+        scene.fog = new THREE.FogExp2(0x010101, 0.015);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 30, 60);
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // optimize for high-DPI screens without lag
+        container.appendChild(renderer.domElement);
+
+        // 1. Deep Space Starfield
+        const starGeometry = new THREE.BufferGeometry();
+        const starVertices = [];
+        for (let i = 0; i < 6000; i++) {
+            starVertices.push(THREE.MathUtils.randFloatSpread(400), THREE.MathUtils.randFloatSpread(400), THREE.MathUtils.randFloatSpread(400));
+        }
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const starMaterial = new THREE.PointsMaterial({ color: 0x888888, size: 0.7, transparent: true, opacity: 0.6 });
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        // Distant Distant cosmic dust
+        const dustPoints = [];
+        for (let i = 0; i < 200; i++) {
+            dustPoints.push(THREE.MathUtils.randFloatSpread(300), THREE.MathUtils.randFloatSpread(300), THREE.MathUtils.randFloatSpread(300));
+        }
+        const dustGeometry = new THREE.BufferGeometry().setFromPoints(dustPoints);
+        const dustMaterial = new THREE.PointsMaterial({ color: 0x444444, size: 1.5, transparent: true, opacity: 0.3 });
+        const dust = new THREE.Points(dustGeometry, dustMaterial);
+        scene.add(dust);
+
+
+        // 2. Central Core (Warm Star)
+        const coreGeometry = new THREE.IcosahedronGeometry(8, 6);
+        const coreMaterial = new THREE.MeshBasicMaterial({ color: 0xaa6600, wireframe: true, transparent: true, opacity: 0.15 });
+        const core = new THREE.Mesh(coreGeometry, coreMaterial);
+        scene.add(core);
+
+        const coreGlowMaterial = new THREE.PointsMaterial({ color: 0xaa6600, size: 0.5, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+        const coreGlowPoints = new THREE.Points(coreGeometry, coreGlowMaterial);
+        scene.add(coreGlowPoints);
+
+
+        // 3. Service Moons (Cyan Orbs)
+        const moons = [];
+        const serviceMoonsGroup = new THREE.Group();
+        scene.add(serviceMoonsGroup);
+
+        for (let i = 0; i < 6; i++) {
+            const moonGeometry = new THREE.SphereGeometry(1.2, 32, 32);
+            // Dynamic cyan/purple base color
+            const moonColor = 0x48b0d6;
+            const moonMaterial = new THREE.MeshBasicMaterial({ color: moonColor, transparent: true, opacity: 0.2 });
+            const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+
+            const moonGlowMaterial = new THREE.PointsMaterial({ color: moonColor, size: 0.3, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+            const moonGlowPoints = new THREE.Points(moonGeometry, moonGlowMaterial);
+
+            // Position moons at varying distances and angles
+            const radius = 18 + i * 4;
+            const angle = (i / 6) * Math.PI * 2;
+            moon.position.set(Math.cos(angle) * radius, (Math.random() - 0.5) * 5, Math.sin(angle) * radius);
+            moon.add(moonGlowPoints); // Add glow to the moon Mesh
+
+            serviceMoonsGroup.add(moon);
+            moons.push(moon);
+        }
+
+
+        // Lights for a dramatic look
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+        scene.add(ambientLight);
+
+        const keyLight = new THREE.PointLight(0xffcc99, 3, 100); // Warm light from core
+        keyLight.position.set(0, 0, 0);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.PointLight(0x48b0d6, 1, 100); // Cooler fill
+        fillLight.position.set(-20, 20, 20);
+        scene.add(fillLight);
+
+
+        // Interaction Math
+        let mouseXRelative = 0; let mouseYRelative = 0;
+        let targetX = 0; let targetY = 0;
+        let time = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseXRelative = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseYRelative = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // The 60FPS Fluid Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.005;
+
+            // Starfield drift
+            stars.rotation.y += 0.0001;
+            stars.rotation.z += 0.00005;
+
+            // Core and Glow subtle rotation
+            core.rotation.y += 0.003;
+            core.rotation.x += 0.001;
+            coreGlowPoints.rotation.y += 0.003;
+            coreGlowPoints.rotation.x += 0.001;
+
+            // Moons Revolution - "exactly like earth around that like moon revolves each services"
+            for (let i = 0; i < moons.length; i++) {
+                // Different radii and speeds for a natural feel
+                const radius = 18 + i * 4;
+                const speed = 0.003 + (6 - i) * 0.001;
+                const angle = time * speed * (i % 2 === 0 ? 1 : -1) + (i / 6) * Math.PI * 2;
+
+                moons[i].position.set(Math.cos(angle) * radius, Math.sin(time * 0.01 + i) * 3, Math.sin(angle) * radius);
+
+                // Pulsing glow for each service moon
+                moons[i].children[0].material.opacity = 0.6 + Math.sin(time * 2 + i) * 0.2;
+            }
+
+            // Smooth Camera Parallax Drift
+            // Intersellar cinematic view - subtle camera shift based on mouseTrailer
+            targetX += (mouseXRelative * 30 - camera.position.x) * 0.02;
+            targetY += (40 + mouseYRelative * -20 - camera.position.y) * 0.02;
+            camera.position.x = targetX;
+            camera.position.y = targetY;
+            camera.position.z += (60 + mouseYRelative * 10 - camera.position.z) * 0.02; // depth shift
+            camera.lookAt(0, 5, 0);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+
+        // --- Mouse Trailer Script, z-index highest ---
+        const cursorBlob = document.getElementById('cursor-blob');
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let blobX = mouseX;
+        let blobY = mouseY;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateBlob() {
+            blobX += (mouseX - blobX) * 0.15;
+            blobY += (mouseY - blobY) * 0.15;
+            cursorBlob.style.left = `${blobX}px`;
+            cursorBlob.style.top = `${blobY}px`;
+            requestAnimationFrame(animateBlob);
+        }
+        animateBlob();
+
+        function attachMagneticHover() {
+            // Target specific classes for hover, e.g., the service card
+            const interactables = document.querySelectorAll('a, button, .glass-card, .job-card, .book-container, input, [onclick]');
+            interactables.forEach(el => {
+                el.addEventListener('mouseenter', () => cursorBlob.classList.add('hover-active'));
+                el.addEventListener('mouseleave', () => cursorBlob.classList.remove('hover-active'));
+            });
+        }
+        setTimeout(attachMagneticHover, 500);
+    </script>
+</body>
+
+</html>
